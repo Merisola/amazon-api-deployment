@@ -1,16 +1,14 @@
-
 const express = require("express");
 const Stripe = require("stripe");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
-dotenv.config(); // loads STRIPE_KEY from .env
+dotenv.config();
 
 const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// Initialize Stripe with secret key
 const stripe = new Stripe(process.env.STRIPE_KEY, { apiVersion: "2022-11-15" });
 
 app.get("/", (req, res) => {
@@ -18,13 +16,13 @@ app.get("/", (req, res) => {
 });
 
 app.post("/payment/create", async (req, res) => {
-  const total = req.query.total;
+  const { total } = req.body;
 
   if (total > 0) {
     try {
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: total,
-        currency: "USD",
+        amount: total * 100, // dollars → cents
+        currency: "usd",
       });
 
       res.status(201).json({
@@ -38,8 +36,7 @@ app.post("/payment/create", async (req, res) => {
   }
 });
 
-
-app.listen(3000, (err)=>{
-    if(err) throw err
-    console.log("Sever running on port 3000, https://localhost:3000");
-})
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
